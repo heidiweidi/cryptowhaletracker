@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🐋 Crypto Whale Tracker
+
+A real-time dashboard to track the top 200 high-liquidity cryptocurrencies with activity-based filtering.
+
+![Crypto Whale Tracker](https://img.shields.io/badge/Status-Live-brightgreen) ![Next.js](https://img.shields.io/badge/Next.js-16-black) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-blue) ![API](https://img.shields.io/badge/API-CoinGecko-orange)
+
+## Features
+
+- **Top 200 Coins** - Track the top 200 cryptocurrencies by trading volume
+- **Activity Filters** - Filter coins by activity level:
+  - 🔴 **High Activity**: >5% price change or high volume
+  - 🟡 **Medium Activity**: 2-5% price change
+  - 🟢 **Low Activity**: <2% price change
+- **Sortable Columns** - Click any column header to sort
+- **7-Day Charts** - Sparkline charts showing 7-day price trends
+- **Liquidity Score** - Custom score calculated from volume and market cap
+- **Tooltips** - Hover over column headers for explanations
+- **Responsive Design** - Works on desktop and mobile
+
+## Data Sources
+
+- **CoinGecko API** - Real-time price, volume, and market data
+- **No API Key Required** - Uses free tier endpoints
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Styling**: Tailwind CSS
+- **Data Fetching**: Native fetch with React hooks
+- **Charts**: Custom SVG sparklines
 
 ## Getting Started
 
-First, run the development server:
+### Development
 
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Open http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Build
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Static Export (for GitHub Pages)
 
-## Learn More
+```bash
+npm run build
+# Output will be in the 'out' directory
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+├── app/
+│   ├── page.tsx         # Main dashboard page
+│   ├── layout.tsx       # Root layout
+│   └── globals.css      # Global styles
+├── components/
+│   ├── Dashboard.tsx    # Main dashboard container
+│   ├── CoinTable.tsx    # Sortable coin data table
+│   ├── Sparkline.tsx    # 7-day price chart
+│   ├── RefreshButton.tsx # Manual refresh button
+│   └── Tooltip.tsx      # Reusable tooltip component
+└── lib/
+    ├── api.ts           # API functions
+    └── types.ts         # TypeScript types
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Activity Classification
 
-## Deploy on Vercel
+| Level | Price Change | Volume |
+|-------|--------------|--------|
+| High | >5% | >$1B |
+| Medium | 2-5% | >$100M |
+| Low | <2% | Normal |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is configured for GitHub Pages deployment. After pushing to your repository:
+
+1. Go to **Settings → Pages**
+2. Select **Source**: Deploy from a branch
+3. Select **Branch**: `gh-pages` / `root`
+4. Click **Save**
+
+## License
+
+MIT License - Feel free to use and modify!
+
+---
+
+Built with ❤️ using Next.js, Tailwind CSS, and CoinGecko API
