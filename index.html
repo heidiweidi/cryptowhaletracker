@@ -80,11 +80,23 @@
               <h2 class="text-lg font-semibold text-white">Coins by Activity</h2>
               <p id="coinCount" class="text-sm text-gray-400">Loading...</p>
             </div>
-            <div class="flex flex-wrap gap-2">
-              <button onclick="setFilter('all')" id="filter-all" class="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-cyan-600 text-white border-2 border-cyan-400">All Coins (0)</button>
-              <button onclick="setFilter('high')" id="filter-high" class="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800 text-gray-300 border-2 border-gray-700 hover:border-gray-600">High Activity (0)</button>
-              <button onclick="setFilter('medium')" id="filter-medium" class="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800 text-gray-300 border-2 border-gray-700 hover:border-gray-600">Medium Activity (0)</button>
-              <button onclick="setFilter('low')" id="filter-low" class="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800 text-gray-300 border-2 border-gray-700 hover:border-gray-600">Low Activity (0)</button>
+            <div class="flex flex-wrap items-center gap-4">
+              <div class="flex flex-wrap gap-2">
+                <button onclick="setFilter('all')" id="filter-all" class="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-cyan-600 text-white border-2 border-cyan-400">All Coins (0)</button>
+                <button onclick="setFilter('high')" id="filter-high" class="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800 text-gray-300 border-2 border-gray-700 hover:border-gray-600">High Activity (0)</button>
+                <button onclick="setFilter('medium')" id="filter-medium" class="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800 text-gray-300 border-2 border-gray-700 hover:border-gray-600">Medium Activity (0)</button>
+                <button onclick="setFilter('low')" id="filter-low" class="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800 text-gray-300 border-2 border-gray-700 hover:border-gray-600">Low Activity (0)</button>
+              </div>
+              <div class="flex items-center gap-2">
+                <label for="exchangeFilter" class="text-gray-400 text-sm">Exchange:</label>
+                <select id="exchangeFilter" onchange="setExchangeFilter(this.value)" class="bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500">
+                  <option value="all">All Exchanges</option>
+                  <option value="binance">🟡 Binance</option>
+                  <option value="okx">⚪ OKX</option>
+                  <option value="mexc">🟢 MEXC</option>
+                  <option value="bybit">⬡ Bybit</option>
+                </select>
+              </div>
             </div>
           </div>
           <p class="text-sm text-gray-500">High: >5% price change | Medium: 2-5% | Low: &lt;2%</p>
@@ -95,12 +107,11 @@
             <thead>
               <tr class="border-b border-gray-800">
                 <th title="Rank by liquidity volume (24h trading volume)" class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">#</th>
-                <th title="Cryptocurrency name and trading symbol" class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortCoins('name')">Coin ↕</th>
+                <th title="Cryptocurrency name and trading symbol (click to view on CoinGecko)" class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortCoins('name')">Coin ↕</th>
                 <th title="Current price in USD" class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortCoins('current_price')">Price ↕</th>
                 <th title="Price change percentage in the last 24 hours" class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortCoins('price_change_percentage_24h')">24h % ↕</th>
                 <th title="Total trading volume in the last 24 hours" class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortCoins('total_volume')">24h Volume ↕</th>
                 <th title="Activity level based on 24h price change and volume: High (>5% or >$1B), Medium (2-5% or >$100M), Low (<2%)" class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Activity</th>
-                <th title="Exchanges where this coin is available for trading" class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Exchange</th>
                 <th title="7-day price trend sparkline chart" class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">7D Chart</th>
                 <th title="Liquidity score calculated from trading volume + market cap (log scale, higher = more liquid)" class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Liquidity</th>
               </tr>
@@ -126,26 +137,13 @@
     let allCoins = [];
     let filteredCoins = [];
     let currentFilter = 'all';
+    let exchangeFilter = 'all';
     let sortField = 'total_volume';
     let sortDirection = 'desc';
     let binanceSymbols = new Set();
     let okxSymbols = new Set();
     let mexcSymbols = new Set();
     let bybitSymbols = new Set();
-
-    const exchangeUrls = {
-      binance: (symbol) => `https://www.binance.com/en/trade/${symbol}_USDT?ref=heidefi`,
-      okx: (symbol) => `https://www.okx.com/trade-spot/${symbol.toLowerCase()}-usdt`,
-      mexc: (symbol) => `https://www.mexc.com/exchange/${symbol.toUpperCase()}_USDT`,
-      bybit: (symbol) => `https://www.bybit.com/trade/spot/${symbol.toUpperCase()}/USDT`
-    };
-
-    const exchangeIcons = {
-      binance: `<svg class="w-5 h-5" viewBox="0 0 128 128"><rect width="128" height="128" fill="#1E2329" rx="16"/><path d="M64 28L76 40L64 52L52 40Z" fill="#F0B90B"/><path d="M64 52L76 64L64 76L52 64Z" fill="#F0B90B" fill-opacity="0.7"/><path d="M64 76L76 88L64 100L52 88Z" fill="#F0B90B" fill-opacity="0.4"/></svg>`,
-      okx: `<svg class="w-5 h-5" viewBox="0 0 128 128"><rect width="128" height="128" fill="#121212" rx="16"/><circle cx="64" cy="64" r="30" fill="#FFFFFF"/><circle cx="64" cy="64" r="20" fill="#1E2329"/></svg>`,
-      mexc: `<svg class="w-5 h-5" viewBox="0 0 128 128"><rect width="128" height="128" fill="#151515" rx="16"/><path d="M30 64L50 44L70 64L50 84Z" fill="#15D2A3"/><path d="M58 64L78 44L98 64L78 84Z" fill="#15D2A3" fill-opacity="0.6"/></svg>`,
-      bybit: `<svg class="w-5 h-5" viewBox="0 0 128 128"><rect width="128" height="128" fill="#1A1A1A" rx="16"/><path d="M64 30L94 50V78L64 98L34 78V50Z" fill="#1E2329" stroke="#F7B731" stroke-width="3"/></svg>`
-    };
 
     async function fetchExchangeData() {
       try {
@@ -182,26 +180,6 @@
       } catch (error) {
         console.warn('Exchange data fetch failed:', error);
       }
-    }
-
-    function getAvailableExchanges(coin) {
-      const symbol = coin.symbol?.toUpperCase() || '';
-      const exchanges = [];
-
-      if (binanceSymbols.has(symbol)) {
-        exchanges.push({ name: 'binance', icon: exchangeIcons.binance, url: exchangeUrls.binance(symbol) });
-      }
-      if (okxSymbols.has(symbol)) {
-        exchanges.push({ name: 'okx', icon: exchangeIcons.okx, url: exchangeUrls.okx(symbol) });
-      }
-      if (mexcSymbols.has(symbol)) {
-        exchanges.push({ name: 'mexc', icon: exchangeIcons.mexc, url: exchangeUrls.mexc(symbol) });
-      }
-      if (bybitSymbols.has(symbol)) {
-        exchanges.push({ name: 'bybit', icon: exchangeIcons.bybit, url: exchangeUrls.bybit(symbol) });
-      }
-
-      return exchanges;
     }
 
     async function fetchCoins() {
@@ -274,8 +252,32 @@
       applyFilter();
     }
 
+    function setExchangeFilter(filter) {
+      exchangeFilter = filter;
+      applyFilter();
+    }
+
     function applyFilter() {
-      filteredCoins = currentFilter === 'all' ? [...allCoins] : allCoins.filter(c => c.activity_level === currentFilter);
+      let filtered = [...allCoins];
+      
+      if (currentFilter !== 'all') {
+        filtered = filtered.filter(c => c.activity_level === currentFilter);
+      }
+      
+      if (exchangeFilter !== 'all') {
+        const symbolSet = {
+          binance: binanceSymbols,
+          okx: okxSymbols,
+          mexc: mexcSymbols,
+          bybit: bybitSymbols
+        }[exchangeFilter];
+        
+        filtered = filtered.filter(c => 
+          symbolSet.has(c.symbol?.toUpperCase())
+        );
+      }
+      
+      filteredCoins = filtered;
       applySort();
       renderStats();
       renderCoins();
@@ -336,21 +338,25 @@
           low: { bg: 'bg-green-900/30', text: 'text-green-400', dot: 'bg-green-500' }
         };
         const activity = activityStyles[coin.activity_level];
-        const exchanges = getAvailableExchanges(coin);
-        const exchangeHtml = exchanges.length > 0 
-          ? exchanges.map(ex => 
-              `<a href="${ex.url}" target="_blank" rel="noopener noreferrer" class="inline-block hover:opacity-80 transition-opacity" title="Trade on ${ex.name.charAt(0).toUpperCase() + ex.name.slice(1)}">${ex.icon}</a>`
-            ).join('')
-          : '<span class="text-gray-600 text-xs">-</span>';
+        const coingeckoUrl = 'https://www.coingecko.com/en/coins/' + coin.id;
 
         return '<tr class="hover:bg-gray-900/50 transition-colors">' +
           '<td class="px-4 py-4 text-gray-500 text-sm">' + (index + 1) + '</td>' +
-          '<td class="px-4 py-4"><div class="flex items-center gap-3"><img src="' + coin.image + '" alt="' + coin.name + '" class="w-8 h-8 rounded-full" onerror="this.style.display=\'none\'"><div><div class="font-medium text-white">' + coin.name + '</div><div class="text-gray-500 text-sm uppercase">' + coin.symbol + '</div></div></div></td>' +
+          '<td class="px-4 py-4">' +
+            '<div class="flex items-center gap-3">' +
+              '<a href="' + coingeckoUrl + '" target="_blank" rel="noopener noreferrer" class="flex-shrink-0">' +
+                '<img src="' + coin.image + '" alt="' + coin.name + '" class="w-8 h-8 rounded-full hover:ring-2 hover:ring-cyan-500 transition-all" onerror="this.style.display=\'none\'">' +
+              '</a>' +
+              '<div>' +
+                '<a href="' + coingeckoUrl + '" target="_blank" rel="noopener noreferrer" class="font-medium text-white hover:text-cyan-400 transition-colors">' + coin.name + '</a>' +
+                '<div class="text-gray-500 text-sm uppercase">' + coin.symbol + '</div>' +
+              '</div>' +
+            '</div>' +
+          '</td>' +
           '<td class="px-4 py-4 text-white font-medium">' + formatPrice(coin.current_price) + '</td>' +
           '<td class="px-4 py-4"><span class="inline-flex items-center px-2 py-1 rounded-md text-sm font-medium ' + (isPositive ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400') + '">' + (isPositive ? '+' : '') + change.toFixed(2) + '%</span></td>' +
           '<td class="px-4 py-4 text-gray-300">' + formatVolume(coin.total_volume) + '</td>' +
           '<td class="px-4 py-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium ' + activity.bg + ' ' + activity.text + '"><span class="w-2 h-2 rounded-full ' + activity.dot + '"></span>' + coin.activity_level.charAt(0).toUpperCase() + coin.activity_level.slice(1) + '</span></td>' +
-          '<td class="px-4 py-4">' + exchangeHtml + '</td>' +
           '<td class="px-4 py-4">' + (coin.sparkline_in_7d?.price ? createSparkline(coin.sparkline_in_7d.price, isPositive) : '-') + '</td>' +
           '<td class="px-4 py-4"><div class="flex items-center gap-2"><div class="w-16 h-2 bg-gray-700 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" style="width:' + Math.min(calculateLiquidity(coin) * 5, 100) + '%"></div></div><span class="text-cyan-400 text-sm font-medium">' + calculateLiquidity(coin).toFixed(1) + '</span></div></td>' +
         '</tr>';
